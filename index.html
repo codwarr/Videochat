@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+<meta charset="UTF-8">
+<title>HAMZEH_CALL | تماس تصویری واتساپی</title>
+
+<!-- PeerJS -->
+<script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
+
+<!-- Manifest + Service Worker -->
+<link rel="manifest" href="manifest.json">
+<script>
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("sw.js");
+}
+</script>
+
+<style>
+/* فونت اختصاصی */
+@font-face {
+  font-family: hamzehFont;
+  src: url("font.ttf");
+}
+
+body{
+  margin:0;
+  background:#f7f7ff;
+  font-family: hamzehFont, sans-serif;
+  direction:rtl;
+  color:#333;
+  font-size:22px; /* متن خیلی بزرگ */
+}
+
+/* هدر */
+.header{
+  background:linear-gradient(90deg,#7b1fa2,#e1bee7);
+  padding:25px;
+  color:#fff;
+  font-size:32px; /* بزرگ‌تر */
+  font-weight:bold;
+  box-shadow:0 2px 10px rgba(123,31,162,0.4);
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+
+.my-id-tag{
+  font-size:22px;
+  background:rgba(255,255,255,0.2);
+  padding:8px 15px;
+  border-radius:12px;
+}
+
+/* ساختار اصلی */
+.main{
+  display:flex;
+  height:calc(100vh - 100px);
+}
+
+/* سایدبار */
+.sidebar{
+  width:380px; /* بزرگ‌تر */
+  background:#fff;
+  border-left:1px solid #ddd;
+  padding:20px;
+  box-shadow:-2px 0 10px rgba(0,0,0,0.05);
+  overflow-y:auto;
+  font-size:22px;
+}
+
+.box-title{
+  font-size:28px;
+  font-weight:bold;
+  color:#7b1fa2;
+  margin-bottom:15px;
+}
+
+.input{
+  width:100%;
+  padding:15px;
+  margin:10px 0 15px;
+  border-radius:10px;
+  border:1px solid #ccc;
+  font-size:22px;
+}
+
+.button{
+  background:#7b1fa2;
+  color:#fff;
+  border:none;
+  padding:15px 25px;
+  border-radius:10px;
+  cursor:pointer;
+  font-size:24px;
+}
+
+.button:hover{
+  background:#6a1b9a;
+}
+
+.error{
+  color:#d32f2f;
+  font-size:20px;
+}
+
+/* پروفایل */
+.profile-avatar{
+  width:140px;
+  height:140px;
+  border-radius:50%;
+  object-fit:cover;
+  border:4px solid #7b1fa2;
+  box-shadow:0 0 10px rgba(123,31,162,0.5);
+  margin-top:10px;
+}
+
+/* مخاطبین */
+.contacts-list{
+  margin-top:20px;
+}
+
+.contact-item{
+  background:#f3e5f5;
+  border-radius:15px;
+  padding:15px;
+  margin-bottom:12px;
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  font-size:22px;
+}
+
+.contact-item:hover{
+  background:#e1bee7;
+}
+
+.contact-info{
+  display:flex;
+  align-items:center;
+  gap:15px;
+}
+
+.contact-avatar{
+  width:70px;
+  height:70px;
+  border-radius:50%;
+  object-fit:cover;
+  border:3px solid #7b1fa2;
+}
+
+.contact-name{
+  font-size:24px;
+  font-weight:bold;
+  color:#4a148c;
+}
+
+.contact-id{
+  font-size:20px;
+  color:#555;
+}
+
+.delete-btn{
+  background:#d32f2f;
+  border:none;
+  color:#fff;
+  padding:10px 20px;
+  border-radius:10px;
+  font-size:20px;
+  cursor:pointer;
+}
+
+/* تماس تصویری */
+.call-area{
+  flex:1;
+  background:radial-gradient(circle at top,#e1bee7 0,#f7f7ff 40%,#fff 100%);
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:space-between;
+  padding:20px;
+}
+
+.remote-wrapper{
+  position:relative;
+  width:80%;
+  max-width:900px;
+  background:#000;
+  border-radius:25px;
+  overflow:hidden;
+  box-shadow:0 10px 25px rgba(123,31,162,0.5);
+}
+
+#otherVideo{
+  width:100%;
+  height:450px;
+  background:#000;
+}
+
+.call-status{
+  position:absolute;
+  bottom:20px;
+  left:25px;
+  color:#fff;
+  font-size:28px;
+  text-shadow:0 0 8px rgba(0,0,0,0.8);
+}
+
+.remote-header{
+  position:absolute;
+  top:20px;
+  left:25px;
+  display:flex;
+  align-items:center;
+  gap:15px;
+  color:#fff;
+}
+
+.remote-avatar{
+  width:70px;
+  height:70px;
+  border-radius:50%;
+  object-fit:cover;
+  border:3px solid #fff;
+}
+
+.remote-name{
+  font-size:26px;
+  font-weight:bold;
+}
+
+.local-wrapper{
+  position:absolute;
+  bottom:25px;
+  right:25px;
+  width:220px;
+  height:160px;
+  border-radius:20px;
+  overflow:hidden;
+  border:3px solid #e1bee7;
+  box-shadow:0 0 15px rgba(0,0,0,0.6);
+}
+
+#myVideo{
+  width:100%;
+  height:100%;
+  background:#000;
+}
+
+/* کنترل‌ها */
+.controls{
+  margin-top:20px;
+  display:flex;
+  gap:25px;
+}
+
+.control-btn{
+  background:#7b1fa2;
+  color:#fff;
+  border:none;
+  padding:18px 30px;
+  border-radius:50px;
+  font-size:26px;
+  cursor:pointer;
+  box-shadow:0 4px 10px rgba(123,31,162,0.4);
+}
+
+.control-btn.red{
+  background:#d32f2f;
+}
+
+.control-btn:hover{
+  transform:translateY(-3px);
+}
+</style>
+</head>
+
+<body>
+
+<header class="header">
+  <div>تماس تصویری | HAMZEH_CALL</div>
+  <span>شناسه شما: <span id="myId" class="my-id-tag"></span></span>
+</header>
+
+<div class="main">
+
+  <!-- سایدبار -->
+  <div class="sidebar">
+    <div>
+      <div class="box-title">پروفایل شما</div>
+      <input type="text" id="username" class="input" placeholder="نام شما">
+      <input type="file" id="avatar" accept="image/*" class="input">
+      <img id="avatarPreview" class="profile-avatar">
+      <p id="profileError" class="error"></p>
+    </div>
+
+    <hr>
+
+    <div>
+      <div class="box-title">افزودن مخاطب</div>
+      <input type="text" id="contactId" class="input" placeholder="ID مخاطب (۵ کاراکتر)">
+      <button class="button" onclick="addContact()">ذخیره مخاطب</button>
+      <p id="contactError" class="error"></p>
+    </div>
+
+    <hr>
+
+    <div>
+      <div class="box-title">مخاطبین شما</div>
+      <div id="contactsContainer" class="contacts-list"></div>
+    </div>
+  </div>
+
+  <!-- تماس تصویری -->
+  <div class="call-area">
+    <div class="remote-wrapper">
+      <video id="otherVideo" autoplay></video>
+
+      <div class="remote-header">
+        <img id="otherAvatarTag" class="remote-avatar">
+        <div id="otherNameTag" class="remote-name">مخاطب</div>
+      </div>
+
+      <div class="call-status" id="callStatus">در حال انتظار برای تماس…</div>
+
+      <div class="local-wrapper">
+        <video id="myVideo" autoplay muted></video>
+      </div>
+    </div>
+
+    <div class="controls">
+      <button class="control-btn" onclick="toggleMic()">🎤 بی‌صدا / فعال</button>
+      <button class="control-btn" onclick="toggleCam()">📷 دوربین / خاموش</button>
+      <button class="control-btn" onclick="switchCamera()">🔄 تغییر دوربین</button>
+      <button class="control-btn red" onclick="endCall()">❌ پایان تماس</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+/* ساخت شناسه */
+function makeID(){
+  const chars="ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+  let id="";
+  for(let i=0;i<5;i++) id+=chars[Math.floor(Math.random()*chars.length)];
+  return id;
+}
+
+let myCustomID=localStorage.getItem("myFixedID");
+if(!myCustomID){
+  myCustomID=makeID();
+  localStorage.setItem("myFixedID",myCustomID);
+}
+document.getElementById("myId").innerText=myCustomID;
+
+/* PeerJS */
+let peer=new Peer(myCustomID);
+let myStream;
+let currentCall;
+let dataConn;
+let currentVideoDevice=null;
+let contacts=[];
+
+/* لود اطلاعات */
+window.onload=()=>{
+  let savedName=localStorage.getItem("username");
+  let savedAvatar=localStorage.getItem("avatar");
+  let savedContacts=localStorage.getItem("contacts");
+
+  if(savedName) document.getElementById("username").value=savedName;
+  if(savedAvatar) document.getElementById("avatarPreview").src=savedAvatar;
+  if(savedContacts){
+    contacts=JSON.parse(savedContacts);
+    renderContacts();
+  }
+
+  if(Notification && Notification.permission!=="granted"){
+    Notification.requestPermission();
+  }
+};
+
+/* گرفتن استریم */
+navigator.mediaDevices.getUserMedia({video:true,audio:true}).then(stream=>{
+  myStream=stream;
+  document.getElementById("myVideo").srcObject=stream;
+});
+
+/* دریافت پروفایل طرف مقابل */
+peer.on('connection',conn=>{
+  dataConn=conn;
+  conn.on('data',data=>{
+    document.getElementById("otherNameTag").innerText=data.name;
+    document.getElementById("otherAvatarTag").src=data.avatar;
+
+    let idx=contacts.findIndex(c=>c.id===conn.peer);
+    if(idx!==-1){
+      contacts[idx].name=data.name;
+      contacts[idx].avatar=data.avatar;
+      localStorage.setItem("contacts",JSON.stringify(contacts));
+      renderContacts();
+    }
+  });
+});
+
+/* دریافت تماس */
+peer.on('call',call=>{
+  call.answer(myStream);
+  currentCall=call;
+
+  document.getElementById("callStatus").innerText="در حال تماس…";
+
+  if(Notification.permission==="granted"){
+    new Notification("تماس ورودی",{
+      body:"تماس جدید از "+call.peer,
+      icon:"icon.png"
+    });
+  }
+
+  call.on('stream',remoteStream=>{
+    document.getElementById("otherVideo").srcObject=remoteStream;
+    document.getElementById("callStatus").innerText="تماس برقرار شد";
+  });
+
+  call.on('close',()=>{
+    document.getElementById("callStatus").innerText="تماس پایان یافت";
+  });
+});
+
+/* افزودن مخاطب */
+function addContact(){
+  let id=document.getElementById("contactId").value.trim();
+
+  if(!id) return document.getElementById("contactError").innerText="آیدی مخاطب را وارد کنید.";
+  if(id.length!==5) return document.getElementById("contactError").innerText="آیدی باید ۵ کاراکتر باشد.";
+  if(!/^[A-Z0-9]+$/.test(id)) return document.getElementById("contactError").innerText="فقط حروف بزرگ و عدد.";
+
+  contacts.push({id,name:"نام نامشخص",avatar:""});
+  localStorage.setItem("contacts",JSON.stringify(contacts));
+  document.getElementById("contactId").value="";
+  document.getElementById("contactError").innerText="";
+  renderContacts();
+}
+
+/* نمایش مخاطبین */
+function renderContacts(){
+  let box=document.getElementById("contactsContainer");
+  box.innerHTML="";
+
+  contacts.forEach((c,i)=>{
+    let div=document.createElement("div");
+    div.className="contact-item";
+    div.onclick=()=>callContact(i);
+
+    let info=document.createElement("div");
+    info.className="contact-info";
+
+    let avatar=document.createElement("img");
+    avatar.className="contact-avatar";
+    avatar.src=c.avatar||"";
+
+    let text=document.createElement("div");
+    let name=document.createElement("div");
+    name.className="contact-name";
+    name.innerText=c.name;
+
+    let id=document.createElement("div");
+    id.className="contact-id";
+    id.innerText="ID: "+c.id;
+
+    text.appendChild(name);
+    text.appendChild(id);
+
+    info.appendChild(avatar);
+    info.appendChild(text);
+
+    let del=document.createElement("button");
+    del.className="delete-btn";
+    del.innerText="حذف";
+    del.onclick=(e)=>{
+      e.stopPropagation();
+      contacts.splice(i,1);
+      localStorage.setItem("contacts",JSON.stringify(contacts));
+      renderContacts();
+    };
+
+    div.appendChild(info);
+    div.appendChild(del);
+    box.appendChild(div);
+  });
+}
+
+/* تماس */
+function callContact(i){
+  let name=document.getElementById("username").value.trim();
+  let avatar=document.getElementById("avatarPreview").src;
+
+  if(!name || !avatar){
+    document.getElementById("profileError").innerText="نام و عکس پروفایل را کامل کنید.";
+    return;
+  }
+
+  localStorage.setItem("username",name);
+  localStorage.setItem("avatar",avatar);
+
+  let contact=contacts[i];
+
+  document.getElementById("callStatus").innerText="در حال زنگ زدن به "+contact.id+"…";
+
+  let ring=new Audio("https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg");
+  ring.loop=true;
+  ring.play();
+
+  let test=peer.connect(contact.id);
+
+  test.on("error",()=>{
+    ring.pause();
+    alert("شناسه اشتباه یا کاربر آنلاین نیست.");
+    document.getElementById("callStatus").innerText="تماس ناموفق";
+  });
+
+  test.on("open",()=>{
+    test.send({name,avatar});
+
+    currentCall=peer.call(contact.id,myStream);
+
+    currentCall.on("stream",remoteStream=>{
+      ring.pause();
+      document.getElementById("otherVideo").srcObject=remoteStream;
+      document.getElementById("callStatus").innerText="تماس برقرار شد";
+    });
+
+    currentCall.on("close",()=>{
+      ring.pause();
+      document.getElementById("callStatus").innerText="تماس پایان یافت";
+    });
+  });
+}
+
+/* کنترل‌ها */
+function toggleMic(){
+  let t=myStream.getAudioTracks()[0];
+  t.enabled=!t.enabled;
+}
+function toggleCam(){
+  let t=myStream.getVideoTracks()[0];
+  t.enabled=!t.enabled;
+}
+function endCall(){
+  if(currentCall){
+    currentCall.close();
+    document.getElementById("callStatus").innerText="تماس پایان یافت";
+  }
+}
+async function switchCamera(){
+  let cams=(await navigator.mediaDevices.enumerateDevices()).filter(d=>d.kind==="videoinput");
+  if(cams.length<2) return alert("فقط یک دوربین موجود است.");
+
+  let next=0;
+  if(currentVideoDevice){
+    let idx=cams.findIndex(c=>c.deviceId===currentVideoDevice);
+    next=(idx+1)%cams.length;
+  }
+  currentVideoDevice=cams[next].deviceId;
+
+  let newStream=await navigator.mediaDevices.getUserMedia({
+    video:{deviceId:{exact:currentVideoDevice}},audio:true
+  });
+
+  myStream.getTracks().forEach(t=>t.stop());
+  myStream=newStream;
+  document.getElementById("myVideo").srcObject=newStream;
+
+  if(currentCall){
+    let sender=currentCall.peerConnection.getSenders().find(s=>s.track.kind==="video");
+    sender.replaceTrack(newStream.getVideoTracks()[0]);
+  }
+}
+
+/* ذخیره عکس پروفایل */
+document.getElementById("avatar").addEventListener("change",function(){
+  let file=this.files[0];
+  let reader=new FileReader();
+  reader.onload=e=>{
+    document.getElementById("avatarPreview").src=e.target.result;
+    localStorage.setItem("avatar",e.target.result);
+  };
+  reader.readAsDataURL(file);
+});
+</script>
+
+</body>
+</html>
