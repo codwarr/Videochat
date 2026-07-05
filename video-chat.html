@@ -7,29 +7,65 @@
 
 <style>
 body {
-  background: #0d0d0d;
+  background: #000;
   color: white;
   font-family: sans-serif;
   text-align: center;
   direction: rtl;
 }
 
-.header {
-  background: linear-gradient(90deg, #ff7b00, #000);
-  padding: 25px;
-  font-size: 30px;
+/* پرچم سیاه تکان‌خورنده */
+.flag-box {
+  width: 220px;
+  height: 130px;
+  margin: 25px auto;
+  position: relative;
+}
+
+.flag {
+  width: 220px;
+  height: 130px;
+  background: black;
+  animation: wave 2s infinite ease-in-out;
+  border: 3px solid #8b0000;
+  border-radius: 5px;
+  position: relative;
+}
+
+.flag-text {
+  position: absolute;
+  bottom: 12px;
+  width: 100%;
+  text-align: center;
+  color: #fff;
+  font-size: 22px;
   font-weight: bold;
-  box-shadow: 0 0 25px #ff7b00;
-  border-bottom: 3px solid #ff7b00;
+  text-shadow: 0 0 8px #8b0000;
+}
+
+@keyframes wave {
+  0% { transform: rotate(0deg); }
+  50% { transform: rotate(4deg); }
+  100% { transform: rotate(0deg); }
+}
+
+/* تم عذا */
+.header {
+  background: linear-gradient(90deg, #8b0000, #000);
+  padding: 25px;
+  font-size: 32px;
+  font-weight: bold;
+  box-shadow: 0 0 30px #8b0000;
+  border-bottom: 3px solid #8b0000;
 }
 
 .box {
-  background: #1a1a1a;
+  background: #111;
   padding: 25px;
   margin: 20px auto;
   width: 90%;
   border-radius: 15px;
-  box-shadow: 0 0 20px #ff7b00;
+  box-shadow: 0 0 25px #8b0000;
 }
 
 .avatar-preview {
@@ -38,7 +74,7 @@ body {
   border-radius: 50%;
   margin-top: 10px;
   object-fit: cover;
-  box-shadow: 0 0 15px #ff7b00;
+  box-shadow: 0 0 20px #8b0000;
 }
 
 .video-area {
@@ -49,10 +85,10 @@ body {
 }
 
 .video-card {
-  background: #1a1a1a;
+  background: #111;
   padding: 15px;
   border-radius: 15px;
-  box-shadow: 0 0 20px #ff7b00;
+  box-shadow: 0 0 25px #8b0000;
   margin: 10px;
   transition: all 0.4s ease;
 }
@@ -75,54 +111,100 @@ video {
   height: 70px;
   border-radius: 50%;
   object-fit: cover;
-  box-shadow: 0 0 10px #ff7b00;
+  box-shadow: 0 0 15px #8b0000;
 }
 
 .controls button {
-  background: #ff7b00;
+  background: #8b0000;
   border: none;
   padding: 20px 40px;
   margin: 10px;
   border-radius: 15px;
-  font-size: 26px;
+  font-size: 22px;
   cursor: pointer;
-  box-shadow: 0 0 20px #ff7b00;
+  box-shadow: 0 0 25px #8b0000;
   transition: 0.3s;
 }
 
 .controls button:hover {
   transform: scale(1.1);
 }
+
+.contacts-list {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.contact-item {
+  background: #1a1a1a;
+  padding: 15px;
+  margin: 10px;
+  border-radius: 12px;
+  box-shadow: 0 0 20px #8b0000;
+  cursor: pointer;
+  width: 200px;
+  transition: 0.3s;
+}
+
+.contact-item:hover {
+  transform: scale(1.05);
+}
+
+.delete-btn {
+  background: #8b0000;
+  border: none;
+  padding: 8px 15px;
+  margin-top: 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  color: white;
+  font-size: 16px;
+}
 </style>
 </head>
 
 <body>
 
+<!-- پرچم سیاه -->
+<div class="flag-box">
+  <div class="flag"></div>
+  <div class="flag-text">رسالات الخامنه‌ای</div>
+</div>
+
 <header class="header">
   ساخته شده توسط WC_HAMZEH
 </header>
 
+<!-- پروفایل -->
 <div class="box">
-  <h2>پروفایل شما (اجباری)</h2>
+  <h2>پروفایل شما</h2>
+  <p style="font-size:22px; color:#8b0000;">شناسه شما: <span id="myId"></span></p>
+
   <input type="text" id="username" placeholder="نام شما">
   <br><br>
   <input type="file" id="avatar" accept="image/*">
   <br>
   <img id="avatarPreview" class="avatar-preview" src="">
+  <p id="profileError" style="color:red; font-size:18px;"></p>
 </div>
 
+<!-- افزودن مخاطب -->
 <div class="box">
-  <p>شناسه شما:</p>
-  <div id="myId" style="font-size:28px; color:#ff7b00;"></div>
-  <button onclick="copyId()">کپی شناسه</button>
-
+  <h2>افزودن مخاطب</h2>
+  <input type="text" id="contactId" placeholder="ID مخاطب (۵ حرف)">
   <br><br>
-  <input type="text" id="otherId" placeholder="شناسه طرف مقابل">
-  <button onclick="callUser()">تماس</button>
-
-  <p id="error" style="color:red; font-size:20px;"></p>
+  <button onclick="addContact()">ذخیره مخاطب</button>
+  <p id="contactError" style="color:red; font-size:18px;"></p>
 </div>
 
+<!-- لیست مخاطبین -->
+<div class="box">
+  <h2>مخاطبین شما</h2>
+  <div id="contactsContainer" class="contacts-list"></div>
+</div>
+
+<!-- ویدیوها -->
 <div class="video-area">
   <div class="video-card" id="myCard">
     <h3 id="myNameTag">شما</h3>
@@ -137,9 +219,11 @@ video {
   </div>
 </div>
 
+<!-- کنترل‌ها -->
 <div class="controls">
-  <button onclick="toggleMic()">🎤 قطع/وصل صدا</button>
-  <button onclick="toggleCam()">📷 قطع/وصل تصویر</button>
+  <button onclick="toggleMic()">🎤 صدا</button>
+  <button onclick="toggleCam()">📷 تصویر</button>
+  <button onclick="switchCamera()">🔄 چرخش دوربین</button>
   <button onclick="endCall()">❌ پایان تماس</button>
 </div>
 
@@ -151,19 +235,51 @@ function makeID() {
   return id;
 }
 
-let myCustomID = makeID();
+/* شناسه ثابت */
+let myCustomID = localStorage.getItem("myFixedID");
+if (!myCustomID) {
+  myCustomID = makeID();
+  localStorage.setItem("myFixedID", myCustomID);
+}
+document.getElementById("myId").innerText = myCustomID;
+
 let peer = new Peer(myCustomID);
 let myStream;
 let currentCall;
 let dataConn;
+let currentVideoDevice = null;
 
-document.getElementById("myId").innerText = myCustomID;
+let contacts = [];
 
+/* لود اطلاعات ذخیره‌شده */
+window.onload = () => {
+  let savedName = localStorage.getItem("username");
+  let savedAvatar = localStorage.getItem("avatar");
+  let savedContacts = localStorage.getItem("contacts");
+
+  if (savedName) {
+    document.getElementById("username").value = savedName;
+    document.getElementById("myNameTag").innerText = savedName;
+  }
+
+  if (savedAvatar) {
+    document.getElementById("avatarPreview").src = savedAvatar;
+    document.getElementById("myAvatarTag").src = savedAvatar;
+  }
+
+  if (savedContacts) {
+    contacts = JSON.parse(savedContacts);
+    renderContacts();
+  }
+};
+
+/* گرفتن استریم اولیه */
 navigator.mediaDevices.getUserMedia({ video: true, audio: true }).then(stream => {
   myStream = stream;
   document.getElementById("myVideo").srcObject = stream;
 });
 
+/* دریافت دیتا (اسم + عکس طرف مقابل) */
 peer.on('connection', conn => {
   dataConn = conn;
 
@@ -173,6 +289,7 @@ peer.on('connection', conn => {
   });
 });
 
+/* دریافت تماس */
 peer.on('call', call => {
   call.answer(myStream);
   currentCall = call;
@@ -183,23 +300,96 @@ peer.on('call', call => {
   });
 });
 
-function callUser() {
-  let name = document.getElementById("username").value;
-  let avatar = document.getElementById("avatarPreview").src;
+/* افزودن مخاطب */
+function addContact() {
+  let id = document.getElementById("contactId").value.trim();
 
-  if (!name || !avatar) {
-    document.getElementById("error").innerText = "لطفاً نام و عکس پروفایل را وارد کنید.";
+  if (!id) {
+    document.getElementById("contactError").innerText = "آیدی مخاطب را وارد کنید.";
+    return;
+  }
+  if (id.length !== 5) {
+    document.getElementById("contactError").innerText = "آیدی باید دقیقاً ۵ کاراکتر باشد.";
+    return;
+  }
+  if (!/^[A-Z0-9]+$/.test(id)) {
+    document.getElementById("contactError").innerText = "آیدی فقط باید شامل حروف بزرگ و عدد باشد.";
+    return;
+  }
+  if (contacts.some(c => c.id === id)) {
+    document.getElementById("contactError").innerText = "این آیدی قبلاً ذخیره شده است.";
     return;
   }
 
-  let id = document.getElementById("otherId").value;
+  contacts.push({ id });
+  localStorage.setItem("contacts", JSON.stringify(contacts));
+  document.getElementById("contactError").innerText = "";
+  document.getElementById("contactId").value = "";
+  renderContacts();
+}
 
-  dataConn = peer.connect(id);
+/* نمایش لیست مخاطبین */
+function renderContacts() {
+  let container = document.getElementById("contactsContainer");
+  container.innerHTML = "";
+
+  if (contacts.length === 0) {
+    container.innerHTML = "<p>هنوز مخاطبی اضافه نکرده‌اید.</p>";
+    return;
+  }
+
+  contacts.forEach((c, index) => {
+    let div = document.createElement("div");
+    div.className = "contact-item";
+
+    div.onclick = (e) => {
+      if (e.target.dataset.action === "delete") return;
+      callContact(index);
+    };
+
+    let name = document.createElement("p");
+    name.innerText = "ID: " + c.id;
+
+    let delBtn = document.createElement("button");
+    delBtn.innerText = "حذف";
+    delBtn.className = "delete-btn";
+    delBtn.dataset.action = "delete";
+    delBtn.onclick = () => deleteContact(index);
+
+    div.appendChild(name);
+    div.appendChild(delBtn);
+    container.appendChild(div);
+  });
+}
+
+/* حذف مخاطب */
+function deleteContact(index) {
+  contacts.splice(index, 1);
+  localStorage.setItem("contacts", JSON.stringify(contacts));
+  renderContacts();
+}
+
+/* تماس با مخاطب */
+function callContact(index) {
+  let profileName = document.getElementById("username").value.trim();
+  let profileAvatar = document.getElementById("avatarPreview").src;
+
+  if (!profileName || !profileAvatar) {
+    document.getElementById("profileError").innerText = "اول نام و عکس پروفایل خودتان را کامل کنید.";
+    return;
+  }
+
+  localStorage.setItem("username", profileName);
+  localStorage.setItem("avatar", profileAvatar);
+
+  let contact = contacts[index];
+
+  dataConn = peer.connect(contact.id);
   dataConn.on('open', () => {
-    dataConn.send({ name: name, avatar: avatar });
+    dataConn.send({ name: profileName, avatar: profileAvatar });
   });
 
-  currentCall = peer.call(id, myStream);
+  currentCall = peer.call(contact.id, myStream);
 
   currentCall.on('stream', remoteStream => {
     document.getElementById("otherVideo").srcObject = remoteStream;
@@ -214,10 +404,6 @@ function enlargeVideos() {
   document.getElementById("otherCard").classList.add("video-big");
 }
 
-function copyId() {
-  navigator.clipboard.writeText(document.getElementById("myId").innerText);
-}
-
 function toggleMic() {
   myStream.getAudioTracks()[0].enabled = !myStream.getAudioTracks()[0].enabled;
 }
@@ -230,21 +416,64 @@ function endCall() {
   if (currentCall) currentCall.close();
 }
 
+/* چرخش دوربین سالم */
+async function getVideoDevices() {
+  let devices = await navigator.mediaDevices.enumerateDevices();
+  return devices.filter(d => d.kind === "videoinput");
+}
+
+async function switchCamera() {
+  let cams = await getVideoDevices();
+
+  if (cams.length < 2) {
+    alert("فقط یک دوربین موجود است.");
+    return;
+  }
+
+  let nextIndex = 0;
+  if (currentVideoDevice) {
+    let idx = cams.findIndex(c => c.deviceId === currentVideoDevice);
+    nextIndex = (idx + 1) % cams.length;
+  }
+
+  currentVideoDevice = cams[nextIndex].deviceId;
+
+  let newStream = await navigator.mediaDevices.getUserMedia({
+    video: { deviceId: { exact: currentVideoDevice } },
+    audio: true
+  });
+
+  myStream.getTracks().forEach(t => t.stop());
+
+  myStream = newStream;
+  document.getElementById("myVideo").srcObject = newStream;
+
+  if (currentCall) {
+    let sender = currentCall.peerConnection.getSenders().find(s => s.track.kind === "video");
+    sender.replaceTrack(newStream.getVideoTracks()[0]);
+  }
+}
+
+/* ذخیره پروفایل هنگام انتخاب عکس */
 document.getElementById("avatar").addEventListener("change", function() {
   let file = this.files[0];
   let reader = new FileReader();
   reader.onload = function(e) {
     document.getElementById("avatarPreview").src = e.target.result;
+    document.getElementById("myAvatarTag").src = e.target.result;
+    localStorage.setItem("avatar", e.target.result);
   };
   reader.readAsDataURL(file);
 });
 
 function updateProfileUI() {
-  let name = document.getElementById("username").value;
+  let name = document.getElementById("username").value.trim();
   let avatar = document.getElementById("avatarPreview").src;
 
   document.getElementById("myNameTag").innerText = name;
   document.getElementById("myAvatarTag").src = avatar;
+  localStorage.setItem("username", name);
+  localStorage.setItem("avatar", avatar);
 }
 </script>
 
