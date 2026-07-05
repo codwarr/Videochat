@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+<meta charset="UTF-8">
+<title>تماس تصویری | ساخته شده توسط WC_HAMZEH</title>
+<script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
+
+<style>
+body {
+  background: #0d0d0d;
+  color: white;
+  font-family: sans-serif;
+  text-align: center;
+  direction: rtl;
+}
+
+.header {
+  background: linear-gradient(90deg, #ff7b00, #000);
+  padding: 20px;
+  font-size: 26px;
+  font-weight: bold;
+  box-shadow: 0 0 20px #ff7b00;
+  border-bottom: 2px solid #ff7b00;
+}
+
+.box {
+  background: #1a1a1a;
+  padding: 20px;
+  margin: 20px auto;
+  width: 90%;
+  border-radius: 10px;
+  box-shadow: 0 0 15px #ff7b00;
+}
+
+.avatar-preview {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  margin-top: 10px;
+  object-fit: cover;
+}
+
+.video-area {
+  display: flex;
+  justify-content: space-around;
+  flex-wrap: wrap;
+  margin-top: 20px;
+}
+
+.video-card {
+  background: #1a1a1a;
+  padding: 10px;
+  border-radius: 10px;
+  box-shadow: 0 0 15px #ff7b00;
+  margin: 10px;
+  transition: all 0.4s ease;
+}
+
+video {
+  width: 380px;
+  height: 260px;
+  border-radius: 10px;
+  background: black;
+  transition: all 0.4s ease;
+}
+
+.video-big video {
+  width: 430px;
+  height: 300px;
+}
+
+.avatar-small {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.controls button {
+  background: #ff7b00;
+  border: none;
+  padding: 15px 30px;
+  margin: 10px;
+  border-radius: 12px;
+  font-size: 22px;
+  cursor: pointer;
+  box-shadow: 0 0 10px #ff7b00;
+}
+</style>
+</head>
+
+<body>
+
+<header class="header">
+  ساخته شده توسط WC_HAMZEH
+</header>
+
+<div class="box">
+  <h2>پروفایل شما</h2>
+  <input type="text" id="username" placeholder="نام شما">
+  <br><br>
+  <input type="file" id="avatar" accept="image/*">
+  <br>
+  <img id="avatarPreview" class="avatar-preview" src="">
+</div>
+
+<div class="box">
+  <p>شناسه شما:</p>
+  <div id="myId" style="font-size:22px; color:#ff7b00;"></div>
+  <button onclick="copyId()">کپی شناسه</button>
+
+  <br><br>
+  <input type="text" id="otherId" placeholder="شناسه طرف مقابل">
+  <button onclick="callUser()">تماس</button>
+</div>
+
+<div class="video-area">
+  <div class="video-card" id="myCard">
+    <h3 id="myNameTag">شما</h3>
+    <img id="myAvatarTag" class="avatar-small">
+    <video id="myVideo" autoplay muted></video>
+  </div>
+
+  <div class="video-card" id="otherCard">
+    <h3 id="otherNameTag">طرف مقابل</h3>
+    <img id="otherAvatarTag" class="avatar-small">
+    <video id="otherVideo" autoplay></video>
+  </div>
+</div>
+
+<div class="controls">
+  <button onclick="toggleMic()">🎤 قطع/وصل صدا</button>
+  <button onclick="toggleCam()">📷 قطع/وصل تصویر</button>
+  <button onclick="endCall()">❌ پایان تماس</button>
+</div>
+
+<script>
+let peer = new Peer();
+let myStream;
+let currentCall;
+
+peer.on('open', id => {
+  document.getElementById("myId").innerText = id;
+});
+
+navigator.mediaDevices.getUserMedia({ video: true, audio: true }).then(stream => {
+  myStream = stream;
+  document.getElementById("myVideo").srcObject = stream;
+});
+
+peer.on('call', call => {
+  call.answer(myStream);
+  currentCall = call;
+
+  call.on('stream', remoteStream => {
+    document.getElementById("otherVideo").srcObject = remoteStream;
+    enlargeVideos();
+  });
+});
+
+function callUser() {
+  let id = document.getElementById("otherId").value;
+  currentCall = peer.call(id, myStream);
+
+  currentCall.on('stream', remoteStream => {
+    document.getElementById("otherVideo").srcObject = remoteStream;
+    enlargeVideos();
+  });
+
+  updateProfileUI();
+}
+
+function enlargeVideos() {
+  document.getElementById("myCard").classList.add("video-big");
+  document.getElementById("otherCard").classList.add("video-big");
+}
+
+function copyId() {
+  navigator.clipboard.writeText(document.getElementById("myId").innerText);
+}
+
+function toggleMic() {
+  myStream.getAudioTracks()[0].enabled = !myStream.getAudioTracks()[0].enabled;
+}
+
+function toggleCam() {
+  myStream.getVideoTracks()[0].enabled = !myStream.getVideoTracks()[0].enabled;
+}
+
+function endCall() {
+  if (currentCall) currentCall.close();
+}
+
+document.getElementById("avatar").addEventListener("change", function() {
+  let file = this.files[0];
+  let reader = new FileReader();
+  reader.onload = function(e) {
+    document.getElementById("avatarPreview").src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+});
+
+function updateProfileUI() {
+  let name = document.getElementById("username").value;
+  let avatar = document.getElementById("avatarPreview").src;
+
+  document.getElementById("myNameTag").innerText = name;
+  document.getElementById("myAvatarTag").src = avatar;
+}
+</script>
+
+</body>
+</html>
